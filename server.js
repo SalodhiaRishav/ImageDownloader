@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 const manageDirectory = require('./manageDirectory');
 const multerWork = require('./multerWork');
 const app = express();
@@ -32,27 +33,34 @@ app.post('/download', function (req, res) {
 })
 
 app.post('/downloadVideoes', function (req, res) {
-    const command = `(for %i in (public/uploads/*.mp4) do @echo file 'public/uploads/%i') > mylist.txt`;
-    exec(command, (error, stdout, stderr) => {
-        if (error) {
-            console.log(`error: ${error.message}`);
-        } else {
-            const output = 'output.mp4';
-            const command = `ffmpeg -f concat -i mylist.txt -c copy output.mp4`
-
-            exec(command, (error, stdout, stderr) => {
-                if (error) {
-                    console.log(`error: ${error.message}`);
-                    return;
-                } else {
-                    res.download(output, (error) => {
-                        if (error) {
-                            throw error;
-                        }
-                    })
-                }
-            });
+    const dir = 'public/uploads/'
+    let filenames = fs.readdirSync(dir);
+  
+    let fileData = '\n';
+    filenames.forEach((file) => {
+        if (file.includes('.mp4')) {
+            fileData = fileData + 'file public/uploads/' + file + '\n';
         }
+    });
+
+    fs.writeFile('mylist.txt', fileData, function (err) {
+        if (err) throw err;
+        console.log('newFile is created successfully.');
+        const output = 'output.mp4';
+        const command = `ffmpeg -f concat -i mylist.txt -c copy output.mp4`
+
+        exec(command, (error, stdout, stderr) => {
+            if (error) {
+                console.log(`error: ${error.message}`);
+                return;
+            } else {
+                res.download(output, (error) => {
+                    if (error) {
+                        throw error;
+                    }
+                })
+            }
+        });
     });
     
 })
