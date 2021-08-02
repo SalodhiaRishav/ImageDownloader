@@ -58,6 +58,7 @@ app.post('/downloadVideoes', function (req, res) {
                     if (error) {
                         throw error;
                     }
+                    fs.unlink(output);
                 })
             }
         });
