@@ -58,7 +58,15 @@ app.post('/downloadVideoes', function (req, res) {
                     if (error) {
                         throw error;
                     }
-                    fs.unlink(output);
+                    
+                    fs.unlink(output, err => {
+                        if (err) {
+                            console.log(err);
+                        }
+                        else {
+                          console.log("Output deleted");
+                        }
+                      });
                 })
             }
         });
