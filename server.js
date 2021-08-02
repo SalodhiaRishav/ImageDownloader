@@ -15,63 +15,65 @@ app.get('/', function (req, res) {
     res.sendFile(path.join(__dirname, 'index.html'))
 })
 
-app.post('/download', function (req, res) {
-    const command = `(for %i in (public/uploads/*.png) do @echo file 'public/uploads/%i') > mylist.txt`;
-    exec(command, (error, stdout, stderr) => {
-        if (error) {
-            console.log(`error: ${error.message}`);
-        } else {
-            const output = 'mylist.txt';
-            res.download(output, (error) => {
-                if (error) {
-                    throw error;
-                }
-            })
-        }
-    });
-    
-})
-
 app.post('/downloadVideoes', function (req, res) {
     const dir = 'public/uploads/'
     let filenames = fs.readdirSync(dir);
   
     let fileData = '\n';
-    filenames.forEach((file) => {
-        if (file.includes('.mp4')) {
-            fileData = fileData + 'file public/uploads/' + file + '\n';
-        }
-    });
-
-    fs.writeFile('mylist.txt', fileData, function (err) {
-        if (err) throw err;
-        console.log('newFile is created successfully.');
-        const output = 'output.mp4';
-        const command = `ffmpeg -f concat -i mylist.txt -c copy output.mp4`
-
-        exec(command, (error, stdout, stderr) => {
-            if (error) {
-                console.log(`error: ${error.message}`);
-                return;
-            } else {
-                res.download(output, (error) => {
-                    if (error) {
-                        throw error;
-                    }
-                    
-                    fs.unlink(output, err => {
-                        if (err) {
-                            console.log(err);
-                        }
-                        else {
-                          console.log("Output deleted");
-                        }
-                      });
-                })
+    if (!filenames.length) {
+        console.log('empty folder');
+        res.sendFile(path.join(__dirname, 'index.html'))
+    } else {
+        filenames.forEach((file) => {
+            if (file.includes('.mp4')) {
+                fileData = fileData + 'file public/uploads/' + file + '\n';
             }
         });
-    });
     
+        fs.writeFile('mylist.txt', fileData, function (err) {
+            if (err) throw err;
+            console.log('newFile is created successfully.');
+            const output = 'output.mp4';
+            const command = `ffmpeg -f concat -i mylist.txt -c copy output.mp4`
+    
+            exec(command, (error, stdout, stderr) => {
+                if (error) {
+                    console.log(`error: ${error.message}`);
+                    return;
+                } else {
+                    res.download(output, (error) => {
+                        if (error) {
+                            throw error;
+                        }
+                        
+                        fs.unlink(output, err => {
+                            if (err) {
+                                console.log(err);
+                            }
+                            else {
+                              console.log("Output deleted");
+                            }
+                          });
+                    })
+                }
+            });
+        });
+    }
+})
+
+app.post('/deleteVideoes', function (req, res) {
+    const dir = 'public/uploads/';
+    fs.readdir(dir, (err, files) => {
+        if (err) throw err;
+      
+        for (const file of files) {
+          fs.unlink(path.join(dir, file), err => {
+            if (err) throw err;
+          });
+        }
+        console.log('folder empty');
+      });
+      res.sendFile(path.join(__dirname, 'index.html'))
 })
 
 app.post('/upload',multerWork.upload.single('imageFile'), function (req, res) {
