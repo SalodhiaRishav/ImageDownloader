@@ -5,18 +5,23 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-    <title>Image Uploader</title>
+    <title>Work</title>
 </head>
 <body>
     <div class="container text-center">
-        <h2>Image Uploader</h2>
-        <form action="/upload" method="POST" enctype="multipart/form-data">
-            <input type="file" class="form-control" id="imageFile" name="imageFile">
-            <button class="btn btn-primary btn-lg btn-block" type="submit">Upload image</button>
+        <form action="/fetchVideoes" method="POST">
+            <input type="text" class="form-control" name="modelName">
+            <button class="btn btn-primary btn-lg btn-block" type="submit">Fetch Files</button>
         </form>
+        <br>
+        <form action="/stopfetching" method="POST">
+            <button class="btn btn-primary btn-lg btn-block" type="submit">Stop Fetch</button>
+        </form>
+        <br>
         <form action="/downloadVideoes" method="POST">
             <button class="btn btn-primary btn-lg btn-block" type="submit">Download Videoes</button>
         </form>
+        <br>
         <form action="/deleteVideoes" method="POST">
             <button class="btn btn-primary btn-lg btn-block" type="submit">Delete Videoes</button>
         </form>

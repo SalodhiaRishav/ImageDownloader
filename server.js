@@ -1,13 +1,16 @@
 const express = require('express');
+const bodyParser = require("body-parser");
+const joinAndDownloadVideo = require ('./Video/downloadVideoes').joinAndDownloadVideo;
+const deleteVideoes = require('./Video/deleteVideoes').deleteVideoes;
+const mongoConnect = require('./CbDownloader/fileWork');
 const path = require('path');
-const fs = require('fs');
-const manageDirectory = require('./manageDirectory');
-const multerWork = require('./multerWork');
 const app = express();
-const { exec } = require("child_process");
 
+app.use(bodyParser.urlencoded({
+    extended: true
+}));
 
-manageDirectory.CreateDirectory();
+app.use(bodyParser.json());
 
 app.use(express.static('public'));
 
@@ -16,69 +19,20 @@ app.get('/', function (req, res) {
 })
 
 app.post('/downloadVideoes', function (req, res) {
-    const dir = 'public/uploads/'
-    let filenames = fs.readdirSync(dir);
-  
-    let fileData = '\n';
-    if (!filenames.length) {
-        console.log('empty folder');
-        res.sendFile(path.join(__dirname, 'index.html'))
-    } else {
-        filenames.forEach((file) => {
-            if (file.includes('.mp4')) {
-                fileData = fileData + 'file public/uploads/' + file + '\n';
-            }
-        });
-    
-        fs.writeFile('mylist.txt', fileData, function (err) {
-            if (err) throw err;
-            console.log('newFile is created successfully.');
-            const output = 'output.mp4';
-            const command = `ffmpeg -f concat -i mylist.txt -c copy output.mp4`
-    
-            exec(command, (error, stdout, stderr) => {
-                if (error) {
-                    console.log(`error: ${error.message}`);
-                    return;
-                } else {
-                    res.download(output, (error) => {
-                        if (error) {
-                            throw error;
-                        }
-                        
-                        fs.unlink(output, err => {
-                            if (err) {
-                                console.log(err);
-                            }
-                            else {
-                              console.log("Output deleted");
-                            }
-                          });
-                    })
-                }
-            });
-        });
-    }
+    joinAndDownloadVideo(res);
 })
 
 app.post('/deleteVideoes', function (req, res) {
-    const dir = 'public/uploads/';
-    fs.readdir(dir, (err, files) => {
-        if (err) throw err;
-      
-        for (const file of files) {
-          fs.unlink(path.join(dir, file), err => {
-            if (err) throw err;
-          });
-        }
-        console.log('folder empty');
-      });
-      res.sendFile(path.join(__dirname, 'index.html'))
+    deleteVideoes();
+    res.sendFile(path.join(__dirname, 'index.html'))
 })
 
-app.post('/upload',multerWork.upload.single('imageFile'), function (req, res) {
-    console.log(req.file.path);
-    res.sendFile(path.join(__dirname, 'index.html'))
+app.post('/fetchVideoes', function (req, res) {
+    mongoConnect.insertFileWithNames(req.body.modelName, res);
+})
+
+app.post('/stopfetching', function (req, res) {
+    mongoConnect.stopFetchingFiles(res).catch(console.error)
 })
 
 const PORT = process.env.PORT || 8080;
