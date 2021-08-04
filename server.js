@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require("body-parser");
 const joinAndDownloadVideo = require ('./Video/downloadVideoes').joinAndDownloadVideo;
 const deleteVideoes = require('./Video/deleteVideoes').deleteVideoes;
+const readVideoes = require('./Video/tsVideoes').readVideoes;
 const mongoConnect = require('./CbDownloader/fileWork');
 const path = require('path');
 const app = express();
@@ -33,6 +34,10 @@ app.post('/fetchVideoes', function (req, res) {
 
 app.post('/stopfetching', function (req, res) {
     mongoConnect.stopFetchingFiles(res).catch(console.error)
+})
+
+app.post('/download', function (req, res) {
+    readVideoes(res);
 })
 
 const PORT = process.env.PORT || 8080;
